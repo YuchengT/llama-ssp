@@ -6,7 +6,7 @@ import torch
 from torch import nn
 from logging import info, debug, warning, error, critical
 
-from lssp.base import get_temperature_distribution, sample_fn, stream_token_if_required, tokenizer
+from lssp.base import get_temperature_distribution, sample_fn, stream_token_if_required, tokenizer, beam_search_model
 
 torch.manual_seed(1339)
 
@@ -29,13 +29,42 @@ def _draft_sample_k(model, input_ids, K):
     draft_logits = torch.stack(draft_logits, dim=1)
     return inputs_plus_k, draft_logits
 
-
 def _target_sample_from_distribution(target_distribution, draft_distribution):
     distribution = (target_distribution - draft_distribution)
     distribution = torch.max(distribution,
                              torch.zeros_like(distribution))
     distribution = distribution / distribution.sum(dim=-1, keepdim=True)
     return torch.multinomial(distribution, num_samples=1).squeeze(-1)
+
+def _beam_greedy_ssp_iteration(target_model, draft_model, input_ids, num_beams, K=4, display=False):
+
+    _, T = input_ids.shape
+    input_plus_k, cumulative_logprobs = beam_search_model(draft_model, input_ids, K, num_beams)
+    batch_size, num_candidates, _ = input_plus_k.size()
+
+    target_input = input_plus_k.view(-1, T+K)
+    target_logits = target_model(target_input).logits[:, -K-1:, :]
+    target_output = sample_fn(target_logits).reshape(batch_size, num_candidates, K+1)
+
+    accepted_length = torch.zeros(batch_size, num_candidates)
+    accepted = torch.ones(batch_size, num_candidates)
+    last_accepted = torch.ones(batch_size, num_candidates)
+
+    for t in range(K):
+        accepted = (input_plus_k[:,:,T + t] == target_output[:,:,t]) * last_accepted
+        accepted_length += accepted
+        last_accepted = accepted
+    
+    draft_score = accepted_length + torch.exp(cumulative_logprobs)
+    draft_score = draft_score.reshape(batch_size, num_candidates)
+
+    final_accepted_length = accepted_length[torch.arange(batch_size), torch.argmax(draft_score, dim=1)]
+    final_accepted_tokens = target_output[torch.arange(batch_size), torch.argmax(draft_score, dim=1), :(final_accepted_length.int() + 1)]
+    final_output = torch.cat([input_ids, final_accepted_tokens], dim=-1)
+
+    stream_token_if_required(final_output, input_ids, stream=display)
+
+    return final_output, final_accepted_length
 
 
 def _ssp_iteration(target_model, draft_model, input_ids, K=4, display=False):
@@ -57,6 +86,7 @@ def _ssp_iteration(target_model, draft_model, input_ids, K=4, display=False):
     draft_distribution = get_temperature_distribution(draft_logits)
     # Accept-reject token loop
     all_accepted = True
+    count_accepted = 0
     for t in range(1, K+1):
         sampled_ratios = (
             target_distribution[:1, t-1, inputs_plus_k[0, T+t-1]]
@@ -68,42 +98,69 @@ def _ssp_iteration(target_model, draft_model, input_ids, K=4, display=False):
         rs = torch.rand_like(sampled_ratios)
 
         if (rs < sampled_ratios).any():  # TODO for B > 1, change this
-            input_ids = torch.cat(
+            output_ids = torch.cat(
                 [input_ids, inputs_plus_k[:, T + t-1].unsqueeze(1)],
                 dim=1)
-            stream_token_if_required(input_ids, stream=display)
-
+            stream_token_if_required(output_ids, input_ids, stream=display)
+            input_ids = output_ids
+            count_accepted += 1
         else:
             all_accepted = False
             next_token_id = _target_sample_from_distribution(
                 target_distribution[:1, t-1, :],
                 draft_distribution[:1, t-1, :])
-            input_ids = torch.cat(
+            output_ids = torch.cat(
                 [input_ids, next_token_id.unsqueeze(1)],
                 dim=1)
-            stream_token_if_required(input_ids, stream=display)
+            stream_token_if_required(output_ids, input_ids, stream=display)
+            input_ids = output_ids
             break
-
+        
     # if all tokens were accepted, sample a last one
     if all_accepted:
         next_token_id = sample_fn(target_logits[:1, -1, :])
-        input_ids = torch.cat(
+        output_ids = torch.cat(
             [input_ids, next_token_id.unsqueeze(1)],
             dim=1)
-        stream_token_if_required(input_ids, stream=display)
+        stream_token_if_required(output_ids, input_ids, stream=display)
+        input_ids = output_ids
     debug(
         f"Accepted continuations: {tokenizer.decode(input_ids[0,T:], skip_special_tokens=True)}")
-    return input_ids
+
+    torch.cuda.empty_cache()
+
+    return input_ids, count_accepted
 
 
 def ssp(target_model, draft_model, min_nb_tokens, input_ids, K=4, display=False):
     B, T = input_ids.shape
     assert B == 1, "Batch size must be 1, implement the fixes for B > 1"
-
+    total_count_accepted = 0
+    total_count_generated = 0
     while input_ids.shape[1] < T + min_nb_tokens:
         debug(f"Current length: {input_ids.shape[1]}")
-        input_ids = _ssp_iteration(target_model, draft_model, input_ids, K, display)
-    return input_ids
+        input_ids, count_accepted = _ssp_iteration(target_model, draft_model, input_ids, K, display)
+        total_count_accepted += count_accepted
+        total_count_generated += K
+        if 2 in input_ids:
+            break
+
+    return input_ids, total_count_accepted, total_count_generated
+
+def ssp_beam_greedy(target_model, draft_model, min_nb_tokens, input_ids, num_beams, K=4, display=False):
+    B, T = input_ids.shape
+    assert B == 1, "Batch size must be 1, implement the fixes for B > 1"
+    total_count_accepted = 0
+    total_count_generated = 0
+    while input_ids.shape[1] < T + min_nb_tokens:
+        debug(f"Current length: {input_ids.shape[1]}")
+        input_ids, count_accepted = _beam_greedy_ssp_iteration(target_model, draft_model, input_ids, num_beams, K, display)
+        total_count_accepted += count_accepted
+        total_count_generated += K
+        if 2 in input_ids:
+            break
+
+    return input_ids, total_count_accepted.item(), total_count_generated
 
 
 class FakeModel(nn.Module):
