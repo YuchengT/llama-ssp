@@ -1,0 +1,1488 @@
+The tokenizer class you load from this checkpoint is not the same type as the class this function is called from. It may result in unexpected tokenization. 
+The tokenizer class you load from this checkpoint is 'LLaMATokenizer'. 
+The class this function is called from is 'LlamaTokenizer'.
+You are using the default legacy behaviour of the <class 'transformers.models.llama.tokenization_llama.LlamaTokenizer'>. If you see this, DO NOT PANIC! This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thouroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565
+The tokenizer class you load from this checkpoint is not the same type as the class this function is called from. It may result in unexpected tokenization. 
+The tokenizer class you load from this checkpoint is 'CodeLlamaTokenizer'. 
+The class this function is called from is 'LlamaTokenizer'.
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:03<00:19,  3.17s/it]Loading checkpoint shards:  29%|██▊       | 2/7 [00:06<00:15,  3.12s/it]Loading checkpoint shards:  43%|████▎     | 3/7 [00:09<00:12,  3.11s/it]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:12<00:09,  3.28s/it]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:15<00:06,  3.19s/it]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:18<00:03,  3.14s/it]Loading checkpoint shards: 100%|██████████| 7/7 [00:21<00:00,  3.06s/it]Loading checkpoint shards: 100%|██████████| 7/7 [00:21<00:00,  3.12s/it]
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:03<00:03,  3.33s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:04<00:00,  2.08s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:04<00:00,  2.27s/it]
+/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/bitsandbytes/nn/modules.py:224: UserWarning: Input type into Linear4bit is torch.float16, but bnb_4bit_compute_type=torch.float32 (default). This will lead to slow inference or training speed.
+  warnings.warn(f'Input type into Linear4bit is torch.float16, but bnb_4bit_compute_type=torch.float32 (default). This will lead to slow inference or training speed.')
+{'model.embed_tokens': 0, 'model.layers.0': 0, 'model.layers.1': 0, 'model.layers.2': 0, 'model.layers.3': 0, 'model.layers.4': 0, 'model.layers.5': 0, 'model.layers.6': 0, 'model.layers.7': 0, 'model.layers.8': 0, 'model.layers.9': 0, 'model.layers.10': 0, 'model.layers.11': 0, 'model.layers.12': 0, 'model.layers.13': 0, 'model.layers.14': 0, 'model.layers.15': 0, 'model.layers.16': 0, 'model.layers.17': 0, 'model.layers.18': 0, 'model.layers.19': 0, 'model.layers.20': 0, 'model.layers.21': 1, 'model.layers.22': 1, 'model.layers.23': 1, 'model.layers.24': 1, 'model.layers.25': 1, 'model.layers.26': 1, 'model.layers.27': 1, 'model.layers.28': 1, 'model.layers.29': 1, 'model.layers.30': 1, 'model.layers.31': 1, 'model.layers.32': 1, 'model.layers.33': 1, 'model.layers.34': 1, 'model.layers.35': 1, 'model.layers.36': 1, 'model.layers.37': 1, 'model.layers.38': 1, 'model.layers.39': 1, 'model.layers.40': 1, 'model.layers.41': 1, 'model.layers.42': 1, 'model.layers.43': 1, 'model.layers.44': 1, 'model.layers.45': 1, 'model.layers.46': 1, 'model.layers.47': 1, 'model.norm': 1, 'lm_head': 1}
+{'': 0}
+Warming up
+Comparing 34B_code_8bit model regular sampling and 34B_code_8bit SSp with 7B_code_4bit draft model
+====
+
+=> Regular sampling with target model
+from typing import List
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    """ Check if in given list of numbers, are any two numbers closer to each other than
+    given threshold.
+    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+    False
+    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+    True
+    """
+    for i in range(len(numbers)):
+        for j in range(i + 1, len(numbers)):
+            if abs(numbers[i] - numbers[j]) < threshold:
+                return True
+    return False
+
+
+if __name__ == "__main__":
+Time: 21.10s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    """ Check if in given list of numbers, are any two numbers closer to each other than
+    given threshold.
+    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+    False
+    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+    True
+    """
+
+    numbers_copy = numbers[::]
+    for number in numbers_copy:
+        numbers_copy.remove(number)
+        if any([abs(number - another_number) <= threshold
+                for another_number in numbers_copy]):
+            return True
+    return False
+
+
+if
+Time: 22.37s
+Acceptance Rate: 0.6944444444444444
+=> Regular sampling with target model
+from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """ Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """
+    return [f"({__separate_paren_pairs(p)})" for p in paren_string.replace(' ', '').split(')(') if p]
+
+
+def __separate_paren_pairs(paren_string: str) -> str:
+Time: 20.74s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """ Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """
+    temp_string = ''
+    return_list = []
+    paren_string = ''.join(paren_string.split())
+    for char in paren_string:
+        if char == '(':
+            if temp_string:
+                return_list.append(temp_string
+Time: 20.88s
+Acceptance Rate: 0.7352941176470589
+=> Regular sampling with target model
+
+
+def truncate_number(number: float) -> float:
+    """ Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """
+    return number - int(number)
+
+print(truncate_number(3.5))
+
+
+
+
+
+
+
+
+
+
+"""
+Given a list of integers, return the largest number 
+that can be formed by multiplying 3 integers from the list. 
+Time: 20.44s
+=> Speculative sampling with target model helped by draft model
+
+
+def truncate_number(number: float) -> float:
+    """ Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """
+    return number % 1
+
+
+
+def decompose_decimal(number: float) -> (int, float):
+    """ Break a decimal number into its integer and decimal parts.
+    >>> decompose_decimal(3.5)
+    (3, 0.5)
+    """
+
+Time: 20.06s
+Acceptance Rate: 0.6944444444444444
+=> Regular sampling with target model
+from typing import List
+
+
+def below_zero(operations: List[int]) -> bool:
+    """ You're given a list of deposit and withdrawal operations on a bank account that starts with
+    zero balance. Your task is to detect if at any point the balance of account fallls below zero, and
+    at that point function should return True. Otherwise it should return False.
+    >>> below_zero([1, 2, 3])
+    False
+    >>> below_zero([1, 2, -4, 5])
+    True
+    """
+
+    balance = 0
+
+    for op in operations:
+        if balance + op < 0:
+            return True
+        balance += op
+    return False
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.test
+Time: 20.74s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def below_zero(operations: List[int]) -> bool:
+    """ You're given a list of deposit and withdrawal operations on a bank account that starts with
+    zero balance. Your task is to detect if at any point the balance of account fallls below zero, and
+    at that point function should return True. Otherwise it should return False.
+    >>> below_zero([1, 2, 3])
+    False
+    >>> below_zero([1, 2, -4, 5])
+    True
+    """
+    balance = 0
+    for op in operations:
+        balance += op
+        if balance < 0:
+            return True
+    return False
+
+
+def below_zero_no_intermediate_values(operations: List[int]) -> bool:
+    """Refactor above function
+Time: 20.95s
+Acceptance Rate: 0.7058823529411765
+=> Regular sampling with target model
+from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """ For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """
+    if not numbers:
+        raise ValueError("'numbers' should never be empty, but got %r" % numbers)
+    mean = sum(numbers) / len(numbers)
+    absolute_deviations = [abs(value - mean) for value in numbers]
+    mad =
+Time: 20.59s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """ For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """
+    avg = sum(numbers) / len(numbers)
+    return sum(abs(i - avg) for i in numbers) / len(numbers)
+
+
+def apply_mean_absolute_deviation(numbers: List[float]) -> List[float]:
+    """ For a given list
+Time: 18.18s
+Acceptance Rate: 0.85
+=> Regular sampling with target model
+from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """ Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """
+
+    # BEGIN SOLUTION
+
+    result = []
+    for number in numbers[:-1]:
+        result += [number, delimeter]
+    result += [numbers[-1]]
+    return result
+
+    # END SOLUTION
+
+
+def test_inters
+Time: 20.73s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """ Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """
+
+    return [element for elements in zip(numbers, numbers[1:] + [None])
+    for element in chain(*zip(elements, (delimeter,) * len(elements[:-1])) 
+    if element]
+
+    # without filter
+    # return [element for sub
+Time: 26.14s
+Acceptance Rate: 0.44565217391304346
+=> Regular sampling with target model
+from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """ Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """
+    depths: List[int] = list()
+    depth = 0
+    max_d = 0
+    for c in paren_string:
+        if c == "(":
+            depth += 1
+            if depth > max_d:
+                max_d =
+Time: 20.62s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """ Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """
+    # A couple test cases to help you develop your intuition about the
+    # problem
+    # assert(parse_nested_parens('(()()) ((()))() ()') == [2, 3, 1])
+    # assert(parse_nested_parens('(()(()) ())
+Time: 25.03s
+Acceptance Rate: 0.5238095238095238
+=> Regular sampling with target model
+from typing import List
+
+
+def filter_by_substring(strings: List[str], substring: str) -> List[str]:
+    """ Filter an input list of strings only for ones that contain given substring
+    >>> filter_by_substring([], 'a')
+    []
+    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
+    ['abc', 'bacd', 'array']
+    """
+
+    return [single_string for single_string in strings if substring in single_string]
+
+
+# NOTE: sort functionality could be implemented using a key function
+def divide_by_type(strings: List[str]) -> [List[str], List[str]]:
+    """
+Time: 20.65s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def filter_by_substring(strings: List[str], substring: str) -> List[str]:
+    """ Filter an input list of strings only for ones that contain given substring
+    >>> filter_by_substring([], 'a')
+    []
+    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
+    ['abc', 'bacd', 'array']
+    """
+    return list(filter(lambda word: substring in word, strings))
+
+
+if __name__ == '__main__':
+    import doctest
+
+    doctest.testmod()
+ import torch
+
+from nemo.collections.nlp.modules.common.m
+Time: 17.35s
+Acceptance Rate: 0.85
+=> Regular sampling with target model
+from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """ For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """
+    if numbers == []:
+        return 0, 1
+    sum_value = 0
+    product_value = 1
+    for element in numbers:
+        sum_value += element
+        product_value *= element
+    return sum_value, product_value
+
+
+Time: 20.85s
+=> Speculative sampling with target model helped by draft model
+from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """ For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """
+    if len(numbers) == 0:
+        return 0, 1
+    else:
+        return sum(numbers), prod(numbers)
+
+
+def sum_and_prod(numbers: list, result: list = [0, 1]) -> list:
+    if len(numbers) >
+Time: 20.85s
+Acceptance Rate: 0.75
+=> Regular sampling with target model
+from typing import List, Tuple
+
+
+def rolling_max(numbers: List[int]) -> List[int]:
+    """ From a given list of integers, generate a list of rolling maximum element found until given moment
+    in the sequence.
+    >>> rolling_max([1, 2, 3, 2, 3, 4, 2])
+    [1, 2, 3, 3, 3, 4, 4]
+    """
+
+    rolling_max_list: List[int] = [0] * len(numbers)
+
+    for i, num in enumerate(numbers):
+        sub_max = max(num, rolling_max_list[i - 1])
+        rolling_max_list[i]
+Time: 20.58s
+=> Speculative sampling with target model helped by draft model
+from typing import List, Tuple
+
+
+def rolling_max(numbers: List[int]) -> List[int]:
+    """ From a given list of integers, generate a list of rolling maximum element found until given moment
+    in the sequence.
+    >>> rolling_max([1, 2, 3, 2, 3, 4, 2])
+    [1, 2, 3, 3, 3, 4, 4]
+    """
+    max_until_now = numbers[0]
+    rolling_max_list = [max_until_now]
+    for number in numbers[1:]:
+        max_until_now = number if number > max_until_now else max_until_now
+        rolling_max_
+Time: 19.31s
+Acceptance Rate: 0.7058823529411765
+=> Regular sampling with target model
+
+
+def is_palindrome(string: str) -> bool:
+    """ Test if given string is a palindrome """
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """ Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """
+    # Begin from the shortest postfix and check if it is a palindrome.
+    # If so, we've just found the palindromic suffix.
+    for i in range(len(string)):
+        suffix = string[i:]
+        if is_palindrome
+Time: 21.69s
+=> Speculative sampling with target model helped by draft model
+
+
+def is_palindrome(string: str) -> bool:
+    """ Test if given string is a palindrome """
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """ Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """
+    for i in range(len(string)):
+        suffix = string[i:]
+        if is_palindrome(suffix):
+            return string + suffix[::-1]
+    return string
+
+
+def main():
+    import doctest
+    doctest.testmod
+Time: 25.53s
+Acceptance Rate: 0.6666666666666666
+=> Regular sampling with target model
+from typing import List
+
+
+def string_xor(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary XOR on these inputs and return result also as a string.
+    >>> string_xor('010', '110')
+    '100'
+    """
+
+    output_list: List[str] = []
+    for i in range(len(a)):
+        if a[i] == b[i]:
+            output_list.append('0')
+        else:
+            output_list.append('1')
+    return "".
+Time: 20.41s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def string_xor(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary XOR on these inputs and return result also as a string.
+    >>> string_xor('010', '110')
+    '100'
+    """
+    return "".join([str(int(ch_a == "1" or ch_b == "1"))
+                    for ch_a, ch_b in zip(a, b)])
+
+
+def single_number(nums: List[int]) -> int:
+    """ The
+Time: 19.56s
+Acceptance Rate: 0.6666666666666666
+=> Regular sampling with target model
+from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """ Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """
+    #
+    # This one-line solution should not be counted against you
+    # if you're banned from using built-in methods :-)
+    # (return sorted(strings, key=len)[0] or None)
+    #
+    # A common mistake people make is not handling
+Time: 20.67s
+=> Speculative sampling with target model helped by draft model
+from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """ Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """
+
+    return max(strings, key=len, default=None)
+
+
+print(longest([]))
+print(longest(["a", "b", "c"]))
+print(longest(["a", "bb", "ccc"])) from html.parser import HTML
+Time: 19.70s
+Acceptance Rate: 0.7058823529411765
+=> Regular sampling with target model
+
+
+def greatest_common_divisor(a: int, b: int) -> int:
+    """ Return a greatest common divisor of two integers a and b
+    >>> greatest_common_divisor(3, 5)
+    1
+    >>> greatest_common_divisor(25, 15)
+    5
+    """
+    while a % b != 0:
+        a, b = b, a % b
+    return b
+ 
+print(greatest_common_divisor(3,75))
+     # -*- coding: utf-8 -*-
+# This technical
+Time: 20.91s
+=> Speculative sampling with target model helped by draft model
+
+
+def greatest_common_divisor(a: int, b: int) -> int:
+    """ Return a greatest common divisor of two integers a and b
+    >>> greatest_common_divisor(3, 5)
+    1
+    >>> greatest_common_divisor(25, 15)
+    5
+    """
+    result = abs(a)
+    if result < abs(b):
+        result = abs(b)
+
+    while result > 1:
+        if result % a == 0 and result % b == 0:
+            return result
+        result -= 1
+    return 1
+
+Time: 21.85s
+Acceptance Rate: 0.5357142857142857
+=> Regular sampling with target model
+from typing import List
+
+
+def all_prefixes(string: str) -> List[str]:
+    """ Return list of all prefixes from shortest to longest of the input string
+    >>> all_prefixes('abc')
+    ['a', 'ab', 'abc']
+    """
+    return [string[:i] for i in range(len(string) + 1)]
+
+
+def all_suffixes(string: str) -> List[str]:
+    """ Return list of all suffixes from shortest to longest of the input string
+    >>> all_su
+Time: 20.30s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def all_prefixes(string: str) -> List[str]:
+    """ Return list of all prefixes from shortest to longest of the input string
+    >>> all_prefixes('abc')
+    ['a', 'ab', 'abc']
+    """
+    return [string[: i + 1] for i in range(len(string))]
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+ # Generated by Django 2.2.3 on 202
+Time: 15.33s
+Acceptance Rate: 0.8666666666666667
+=> Regular sampling with target model
+
+
+def string_sequence(n: int) -> str:
+    """ Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """
+    return " ".join(str(i) for i in range(n + 1))
+ import requests, json, os, urllib2
+from datetime import datetime
+from bs4 import BeautifulSoup
+from fuzzywuzzy import fuzz
+
+class user_daily
+Time: 21.45s
+=> Speculative sampling with target model helped by draft model
+
+
+def string_sequence(n: int) -> str:
+    """ Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """
+    # sequence building using join
+    my_list = list()
+    for i in range(0, n + 1):
+        my_list.append(str(i))
+    return ' '.join(my_list)
+
+
+# sequence building using string addition
+def alt_string_sequence(
+Time: 22.07s
+Acceptance Rate: 0.5595238095238095
+=> Regular sampling with target model
+
+
+def count_distinct_characters(string: str) -> int:
+    """ Given a string, find out how many distinct characters (regardless of case) does it consist of
+    >>> count_distinct_characters('xyzXYZ')
+    3
+    >>> count_distinct_characters('Jerry')
+    4
+    """
+    distinct = set()
+
+    for char in string:
+        distinct.add(char.lower())
+    return len(distinct)
+
+
+# --raft:results=skipped\[2\]:test_creators=disabled
+ """
+Django settings for signify
+Time: 20.83s
+=> Speculative sampling with target model helped by draft model
+
+
+def count_distinct_characters(string: str) -> int:
+    """ Given a string, find out how many distinct characters (regardless of case) does it consist of
+    >>> count_distinct_characters('xyzXYZ')
+    3
+    >>> count_distinct_characters('Jerry')
+    4
+    """
+ from core.himesis import Himesis, HimesisPostConditionPattern
+import uuid
+
+class HUnitFather2Man(HimesisPostConditionPattern):
+	def __init__(self):
+		"""
+		Creates the himesis graph representing the ATo
+Time: 17.41s
+Acceptance Rate: 0.78125
+=> Regular sampling with target model
+from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """ Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """
+    note_map = {'o': 4, 'o|': 2, '.|': 1}
+    return [note_map[note] for note in music_string.split()]
+
+
+if __name__ == '__main__':
+    import doctest
+
+Time: 21.59s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """ Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """
+    mapping = {'o': 4, '|': 2, '.': 1}
+    return [mapping[c] for c in music_string]
+
+
+def longest_ticket(ticket: list) -> int:
+    """ Rules of tickets are very unexpected. Each
+Time: 30.58s
+Acceptance Rate: 0.5238095238095238
+=> Regular sampling with target model
+
+
+def how_many_times(string: str, substring: str) -> int:
+    """ Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """
+    counter = 0
+    for i in range(len(string)):
+        if string[i:i+len(substring)] == substring:
+            counter += 1
+    return counter
+    
+
+if __name__ == '__main__':
+    import doctest
+   
+Time: 20.62s
+=> Speculative sampling with target model helped by draft model
+
+
+def how_many_times(string: str, substring: str) -> int:
+    """ Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """
+    if substring == "":
+        raise ValueError("substring should not be empty")
+    if len(substring) == 1:
+        return sum(1 for letter in string if letter == substring)
+    count = 0
+    for i in range(len(string)-len(substring)+1):
+Time: 24.70s
+Acceptance Rate: 0.5113636363636364
+=> Regular sampling with target model
+from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """ Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """
+    return " ".join(
+        sorted(
+            numbers.split(),
+            key=lambda n: [
+                "zero",
+                "one",
+                "two",
+                "three",
+                "four",
+                "five",
+                "six",
+                "seven
+Time: 20.81s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """ Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """
+    # numbers_str = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+    # numbers_int = [-1, 1, 2, 3, 4, 5, 
+Time: 17.63s
+Acceptance Rate: 0.8333333333333334
+=> Regular sampling with target model
+from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """ From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """
+    numbers.sort()
+    min_diff = abs(numbers[1] - numbers[0])
+    val_one = numbers[0]
+    val_two = numbers[1]
+    for first_elem in range(len(numbers) - 1):
+        if abs(
+Time: 21.33s
+=> Speculative sampling with target model helped by draft model
+from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """ From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """
+    ordered_numbers = sorted(numbers)
+    return (
+        ordered_numbers[0],
+        ordered_numbers[1]) if ordered_numbers[0] != ordered_numbers[1] else (ordered_numbers[0], ordered_numbers[0])
+
+
+def find_closest
+Time: 22.77s
+Acceptance Rate: 0.765625
+=> Regular sampling with target model
+from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """ Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """
+    assert len(numbers) >= 2, "list of numbers must have at least 2 elements"
+    smallest = min(numbers)
+    largest = max(numbers)
+
+    scale_factor = 1.0 / (largest - smallest)
+    return [((x - smallest
+Time: 20.63s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """ Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """
+    # if empty list or single value in the list then return the same list
+    if len(numbers) <= 1:
+        return numbers
+    # else if list has more than one value
+    maximum = max(numbers)
+    minimum = min(numbers)
+    # have to return
+Time: 19.90s
+Acceptance Rate: 0.75
+=> Regular sampling with target model
+from typing import List, Any
+
+
+def filter_integers(values: List[Any]) -> List[int]:
+    """ Filter given list of any python values only for integers
+    >>> filter_integers(['a', 3.14, 5])
+    [5]
+    >>> filter_integers([1, 2, 3, 'abc', {}, []])
+    [1, 2, 3]
+    """
+    return list(filter(
+        lambda x: isinstance(x, int) and not isinstance(x, bool), values
+    )
+
+
+def mul(values: List[int]) -> int:
+    """ Multiply all values in a given list
+    >>> mul([1
+Time: 20.50s
+=> Speculative sampling with target model helped by draft model
+from typing import List, Any
+
+
+def filter_integers(values: List[Any]) -> List[int]:
+    """ Filter given list of any python values only for integers
+    >>> filter_integers(['a', 3.14, 5])
+    [5]
+    >>> filter_integers([1, 2, 3, 'abc', {}, []])
+    [1, 2, 3]
+    """
+    return list(filter(lambda x: isinstance(x, int), values))
+
+
+# print(filter_integers(['a', 3.14, 5]))
+# print(filter_integers([1, 2, 3, 'abc', {}, []]))
+ import
+Time: 15.88s
+Acceptance Rate: 0.9464285714285714
+=> Regular sampling with target model
+
+
+def strlen(string: str) -> int:
+    """ Return length of given string
+    >>> strlen('')
+    0
+    >>> strlen('abc')
+    3
+    """
+    length = 0
+    for i in string:
+        length = length + 1
+    return length
+
+
+# -- Name signature checks -------------------------------------------------
+if __name__ == '__main__':
+    import doctest
+    print(doctest.testmod())
+Time: 20.25s
+=> Speculative sampling with target model helped by draft model
+
+
+def strlen(string: str) -> int:
+    """ Return length of given string
+    >>> strlen('')
+    0
+    >>> strlen('abc')
+    3
+    """
+    length = 0
+    for _ in string:
+        length += 1
+    return length
+
+
+def is_palindrome(string: str) -> bool:
+    """ Return True if string is palindrome e.g same when read forwards and backwards
+    >>> is
+Time: 19.40s
+Acceptance Rate: 0.55
+=> Regular sampling with target model
+
+
+def largest_divisor(n: int) -> int:
+    """ For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """
+    if n < 2:
+        return 1
+    else:
+        for i in range(n-1, 1, -1):
+            if etc...
+ # Generated by Django 3.0.8 on 2020-08-07
+Time: 20.73s
+=> Speculative sampling with target model helped by draft model
+
+
+def largest_divisor(n: int) -> int:
+    """ For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """
+    
+    """[]"""
+    divisors = [] # empty set that we'll fill in
+    for i in range(1, n): # range from 1 to n-1
+        if n % i == 0: # if number is divisible
+            divisors.append
+Time: 15.97s
+Acceptance Rate: 0.75
+=> Regular sampling with target model
+from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """ Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """
+    # put import inside function to make it works in hackerrank
+    from itertools import chain
+
+    prime_n = prime_numbers(int(n ** 0.5) + 1)
+    prime_factors = [p for p in prime_n if n % p
+Time: 20.79s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """ Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """
+    res = []
+
+    factor = 2
+
+    while n > 1:
+        if n % factor == 0:
+            n /= factor
+            res.append(factor)
+        else:
+            factor += 1
+
+    return res
+
+
+if __name__ == "
+Time: 17.66s
+Acceptance Rate: 0.9642857142857143
+=> Regular sampling with target model
+from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """ From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """
+    done = set()
+    output = []
+
+    for number in numbers:
+        if number in done:
+            pass
+        else:
+            output.append(number)
+            done.add(number)
+
+    return output
+
+
+def remove_duplicates_solution
+Time: 20.43s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """ From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """
+
+    return list(dict.fromkeys(numbers))
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+ import os
+from stitch import Stitch
+import json
+
+# Change to directory so the
+Time: 21.47s
+Acceptance Rate: 0.5921052631578947
+=> Regular sampling with target model
+
+
+def flip_case(string: str) -> str:
+    """ For a given string, flip lowercase characters to uppercase and uppercase to lowercase.
+    >>> flip_case('Hello')
+    'hELLO'
+    """
+    flipped_str = []
+
+    for char in string:
+        flipped_str.append(char.swapcase())
+
+    return ''.join(flipped_str)
+ import mysql.connector as mysql
+import yaml
+import argparse
+import
+Time: 20.75s
+=> Speculative sampling with target model helped by draft model
+
+
+def flip_case(string: str) -> str:
+    """ For a given string, flip lowercase characters to uppercase and uppercase to lowercase.
+    >>> flip_case('Hello')
+    'hELLO'
+    """
+    return ''.join(map(lambda x: x.upper() if x.islower() else x.lower(), string))
+
+ import logging
+from typing import Any, Dict, Optional
+
+from flask import g, request, Response
+from flask_appbuilder.api import expose,
+Time: 16.31s
+Acceptance Rate: 0.765625
+=> Regular sampling with target model
+from typing import List
+
+
+def concatenate(strings: List[str]) -> str:
+    """ Concatenate list of strings into a single string
+    >>> concatenate([])
+    ''
+    >>> concatenate(['a', 'b', 'c'])
+    'abc'
+    """
+
+    return ''.join(strings)
+
+
+METADATA = {
+    'author': 'jt',
+    'dataset': 'test'
+}
+
+
+def check(candidate):
+    assert candidate([]) == ''
+    assert candidate(['a', 'b',
+Time: 20.08s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def concatenate(strings: List[str]) -> str:
+    """ Concatenate list of strings into a single string
+    >>> concatenate([])
+    ''
+    >>> concatenate(['a', 'b', 'c'])
+    'abc'
+    """
+    return "".join(strings)
+
+
+METADATA = {
+    "author": "jt",
+    "dataset": "test",
+    "description": "string operation",
+    "path": "testpath",
+}
+
+
+def check_path(path):
+    return path ==
+Time: 21.48s
+Acceptance Rate: 0.5595238095238095
+=> Regular sampling with target model
+from typing import List
+
+
+def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
+    """ Filter an input list of strings only for ones that start with a given prefix.
+    >>> filter_by_prefix([], 'a')
+    []
+    >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
+    ['abc', 'array']
+    """
+    return list(filter(lambda x: x.startswith(prefix), strings))
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod() # -*- coding: utf-8 -*-
+from __
+Time: 20.84s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
+    """ Filter an input list of strings only for ones that start with a given prefix.
+    >>> filter_by_prefix([], 'a')
+    []
+    >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
+    ['abc', 'array']
+    """
+    return [word for word in strings if word.startswith(prefix)]
+
+
+print(filter_by_prefix([], 'a'))  # []
+print(filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a'))  # ['abc',
+Time: 16.99s
+Acceptance Rate: 0.8166666666666667
+=> Regular sampling with target model
+
+
+def get_positive(l: list):
+    """Return only positive numbers in the list.
+    >>> get_positive([-1, 2, -4, 5, 6])
+    [2, 5, 6]
+    >>> get_positive([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])
+    [5, 3, 2, 3, 9, 123, 1]
+    """
+    positive_list = []
+    for i in l:
+        if i >= 0:
+            positive_list.append(i)
+    return positive_list
+
+            
+
+
+def get_negative(l: list):
+    """Return only negative numbers in the list.
+
+Time: 20.59s
+=> Speculative sampling with target model helped by draft model
+
+
+def get_positive(l: list):
+    """Return only positive numbers in the list.
+    >>> get_positive([-1, 2, -4, 5, 6])
+    [2, 5, 6]
+    >>> get_positive([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])
+    [5, 3, 2, 3, 9, 123, 1]
+    """
+    return [x for x in l if x>0]
+
+print(get_positive([-1, 2, -4, 5, 6]))
+print(get_positive([5, 3, -5, 2, -3, 3, 9, 0
+Time: 17.24s
+Acceptance Rate: 0.9464285714285714
+=> Regular sampling with target model
+
+
+def is_prime(n):
+    """Return true if a given number is prime, and false otherwise.
+    >>> is_prime(6)
+    False
+    >>> is_prime(101)
+    True
+    >>> is_prime(11)
+    True
+    >>> is_prime(13441)
+    True
+    >>> is_prime(61)
+    True
+    >>> is_prime(4)
+    False
+    >>> is_prime(1)
+    False
+    """
+    "*** YOUR CODE HERE ***"
+    if n < 2:
+        return False
+    for i in range(2, round(n ** 0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+Time: 20.87s
+=> Speculative sampling with target model helped by draft model
+
+
+def is_prime(n):
+    """Return true if a given number is prime, and false otherwise.
+    >>> is_prime(6)
+    False
+    >>> is_prime(101)
+    True
+    >>> is_prime(11)
+    True
+    >>> is_prime(13441)
+    True
+    >>> is_prime(61)
+    True
+    >>> is_prime(4)
+    False
+    >>> is_prime(1)
+    False
+    """
+    "*** YOUR CODE HERE ***"
+    return (is_divisible(n,2) or n==1)==False and is_divisible(n,3)==False
+
+def is_divisible(a, b):
+    return a % b == 0
+Time: 20.23s
+Acceptance Rate: 0.7352941176470589
+=> Regular sampling with target model
+import math
+
+
+def poly(xs: list, x: float):
+    """
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """ xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """
+    # this ensures that the largest coefficient is positive
+    # and hence, there is at least one zero in the range [-r, r],
+    # where r = 1 + 1 + 2 + ... + N, where N is the number of coefficients
+    coeff = sorted(
+Time: 23.96s
+=> Speculative sampling with target model helped by draft model
+import math
+
+
+def poly(xs: list, x: float):
+    """
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """ xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """
+    assert len(xs) % 2 == 0  # guarantee a solution
+    assert len(xs) > 0 and xs[-1] != 0  # guarantee aTraceback (most recent call last):
+  File "/home/ubuntu/llama-ssp/llamassp.py", line 295, in <module>
+    acceptance_rate, sample_model_time, ssp_time = show_comparative_speeds(text, model, draft_model)
+  File "/home/ubuntu/llama-ssp/llamassp.py", line 222, in show_comparative_speeds
+    input_ids, total_count_accepted, total_count_generated = ssp(model, draft_model, MAX_NEW_TOKENS,
+  File "/home/ubuntu/llama-ssp/lssp/ssp.py", line 111, in ssp
+    input_ids, count_accepted = _ssp_iteration(target_model, draft_model, input_ids, K, display)
+  File "/home/ubuntu/llama-ssp/lssp/ssp.py", line 55, in _ssp_iteration
+    target_logits = target_model(inputs_plus_k).logits[:, -K-1:, :]
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/accelerate/hooks.py", line 165, in new_forward
+    output = old_forward(*args, **kwargs)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/transformers/models/llama/modeling_llama.py", line 820, in forward
+    outputs = self.model(
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/transformers/models/llama/modeling_llama.py", line 708, in forward
+    layer_outputs = decoder_layer(
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/accelerate/hooks.py", line 165, in new_forward
+    output = old_forward(*args, **kwargs)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/transformers/models/llama/modeling_llama.py", line 437, in forward
+    hidden_states = self.mlp(hidden_states)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/accelerate/hooks.py", line 165, in new_forward
+    output = old_forward(*args, **kwargs)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/transformers/models/llama/modeling_llama.py", line 220, in forward
+    down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/accelerate/hooks.py", line 165, in new_forward
+    output = old_forward(*args, **kwargs)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/bitsandbytes/nn/modules.py", line 441, in forward
+    out = bnb.matmul(x, self.weight, bias=self.bias, state=self.state)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/bitsandbytes/autograd/_functions.py", line 563, in matmul
+    return MatMul8bitLt.apply(A, B, out, bias, state)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/torch/autograd/function.py", line 506, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/bitsandbytes/autograd/_functions.py", line 404, in forward
+    output = F.mm_dequant(out32, Sout32, SCA, state.SCB, bias=bias)
+  File "/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/bitsandbytes/functional.py", line 1816, in mm_dequant
+    out = torch.empty(out_shape, dtype=torch.float16, device=A.device)
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 16.00 MiB (GPU 0; 39.56 GiB total capacity; 37.72 GiB already allocated; 10.81 MiB free; 39.04 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF

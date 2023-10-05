@@ -1,0 +1,535 @@
+The tokenizer class you load from this checkpoint is not the same type as the class this function is called from. It may result in unexpected tokenization. 
+The tokenizer class you load from this checkpoint is 'LLaMATokenizer'. 
+The class this function is called from is 'LlamaTokenizer'.
+You are using the default legacy behaviour of the <class 'transformers.models.llama.tokenization_llama.LlamaTokenizer'>. If you see this, DO NOT PANIC! This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thouroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565
+The tokenizer class you load from this checkpoint is not the same type as the class this function is called from. It may result in unexpected tokenization. 
+The tokenizer class you load from this checkpoint is 'CodeLlamaTokenizer'. 
+The class this function is called from is 'LlamaTokenizer'.
+Loading checkpoint shards:   0%|          | 0/7 [00:00<?, ?it/s]Loading checkpoint shards:  14%|█▍        | 1/7 [00:02<00:13,  2.33s/it]Loading checkpoint shards:  29%|██▊       | 2/7 [00:04<00:11,  2.32s/it]Loading checkpoint shards:  43%|████▎     | 3/7 [00:06<00:09,  2.34s/it]Loading checkpoint shards:  57%|█████▋    | 4/7 [00:10<00:08,  2.91s/it]Loading checkpoint shards:  71%|███████▏  | 5/7 [00:14<00:06,  3.03s/it]Loading checkpoint shards:  86%|████████▌ | 6/7 [00:17<00:03,  3.13s/it]Loading checkpoint shards: 100%|██████████| 7/7 [00:20<00:00,  3.18s/it]Loading checkpoint shards: 100%|██████████| 7/7 [00:20<00:00,  2.95s/it]
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:02<00:02,  2.72s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.69s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:03<00:00,  1.85s/it]
+/home/ubuntu/anaconda3/envs/llama_ssp/lib/python3.9/site-packages/bitsandbytes/nn/modules.py:224: UserWarning: Input type into Linear4bit is torch.float16, but bnb_4bit_compute_type=torch.float32 (default). This will lead to slow inference or training speed.
+  warnings.warn(f'Input type into Linear4bit is torch.float16, but bnb_4bit_compute_type=torch.float32 (default). This will lead to slow inference or training speed.')
+{'model.embed_tokens': 0, 'model.layers.0': 0, 'model.layers.1': 0, 'model.layers.2': 0, 'model.layers.3': 0, 'model.layers.4': 0, 'model.layers.5': 0, 'model.layers.6': 0, 'model.layers.7': 0, 'model.layers.8': 0, 'model.layers.9': 0, 'model.layers.10': 0, 'model.layers.11': 0, 'model.layers.12': 0, 'model.layers.13': 0, 'model.layers.14': 0, 'model.layers.15': 0, 'model.layers.16': 0, 'model.layers.17': 0, 'model.layers.18': 0, 'model.layers.19': 0, 'model.layers.20': 0, 'model.layers.21': 1, 'model.layers.22': 1, 'model.layers.23': 1, 'model.layers.24': 1, 'model.layers.25': 1, 'model.layers.26': 1, 'model.layers.27': 1, 'model.layers.28': 1, 'model.layers.29': 1, 'model.layers.30': 1, 'model.layers.31': 1, 'model.layers.32': 1, 'model.layers.33': 1, 'model.layers.34': 1, 'model.layers.35': 1, 'model.layers.36': 1, 'model.layers.37': 1, 'model.layers.38': 1, 'model.layers.39': 1, 'model.layers.40': 1, 'model.layers.41': 1, 'model.layers.42': 1, 'model.layers.43': 1, 'model.layers.44': 1, 'model.layers.45': 1, 'model.layers.46': 1, 'model.layers.47': 1, 'model.norm': 1, 'lm_head': 1}
+{'': 0}
+Warming up
+Comparing 34B_code_8bit model regular sampling and 34B_code_8bit SSp with 7B_code_4bit draft model
+====
+
+=> Regular sampling with target model
+from typing import List
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    """ Check if in given list of numbers, are any two numbers closer to each other than
+    given threshold.
+    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+    False
+    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+    True
+    """
+    for i in range(len(numbers)):
+        for j in range(i + 1, len(numbers)):
+            if abs(numbers[i] - numbers[j]) < threshold:
+                return True
+    return False
+
+
+if __name__ == "__main__":
+Time: 26.48s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def has_close_elements(numbers: List[float], threshold: float) -> bool:
+    """ Check if in given list of numbers, are any two numbers closer to each other than
+    given threshold.
+    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)
+    False
+    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)
+    True
+    """
+    numbers.sort()
+    for index in range(len(numbers) - 1):
+        if numbers[index + 1] - numbers[index] < threshold:
+            return True
+    return False
+
+
+if __name__ == "__main__":
+    import doctest
+
+Time: 18.84s
+Acceptance Rate: 0.8333333333333334
+=> Regular sampling with target model
+from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """ Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """
+    assert paren_string.count("(") == paren_string.count(")"), "Unbalanced parens"
+    paren_list = []
+    start = 0
+    end = 0
+    for i in range(len(paren_string)):
+       
+Time: 21.83s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """ Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """
+    assert paren_string.count("(") == paren_string.count(")"), "Unbalanced parens"
+    paren_list = []
+    current_paren_group = ""
+    current_paren_count = 0
+    for paren in paren_string:
+Time: 29.10s
+Acceptance Rate: 0.5
+=> Regular sampling with target model
+
+
+def truncate_number(number: float) -> float:
+    """ Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """
+    return number - int(number)
+
+
+def round_half_up(number: float) -> int:
+    """ Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (lefto
+Time: 21.51s
+=> Speculative sampling with target model helped by draft model
+
+
+def truncate_number(number: float) -> float:
+    """ Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """
+    return number - int(number)
+
+
+def round_number(number: float) -> float:
+    """ Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1
+Time: 16.97s
+Acceptance Rate: 0.8787878787878788
+=> Regular sampling with target model
+from typing import List
+
+
+def below_zero(operations: List[int]) -> bool:
+    """ You're given a list of deposit and withdrawal operations on a bank account that starts with
+    zero balance. Your task is to detect if at any point the balance of account fallls below zero, and
+    at that point function should return True. Otherwise it should return False.
+    >>> below_zero([1, 2, 3])
+    False
+    >>> below_zero([1, 2, -4, 5])
+    True
+    """
+
+    balance = 0
+
+    for operation in operations:
+        balance += operation
+        if balance < 0:
+            return True
+
+    return False
+
+
+if __name__ == "__main__":
+    print(below_zero([1, 2, -4
+Time: 21.64s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def below_zero(operations: List[int]) -> bool:
+    """ You're given a list of deposit and withdrawal operations on a bank account that starts with
+    zero balance. Your task is to detect if at any point the balance of account fallls below zero, and
+    at that point function should return True. Otherwise it should return False.
+    >>> below_zero([1, 2, 3])
+    False
+    >>> below_zero([1, 2, -4, 5])
+    True
+    """
+    balance = 0
+    for operation in operations:
+        balance += operation
+        if balance < 0:
+            return True
+    return False
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod(verbose=True)
+   
+Time: 17.13s
+Acceptance Rate: 0.9833333333333333
+=> Regular sampling with target model
+from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """ For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """
+    mean = sum(numbers) / len(numbers)
+    absolute_differences = [abs(mean - x) for x in numbers]
+    return sum(absolute_differences) / len(numbers)
+
+
+def standard_deviation(numbers: List[float]) ->
+Time: 21.51s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """ For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """
+    mean = sum(numbers) / len(numbers)
+    absolute_differences = [abs(mean - x) for x in numbers]
+    return sum(absolute_differences) / len(absolute_differences)
+
+
+def standard_deviation(numbers: List
+Time: 20.02s
+Acceptance Rate: 0.7222222222222222
+=> Regular sampling with target model
+from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """ Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """
+    result = []
+    for index in range(len(numbers) - 1):
+        result.append(numbers[index])
+        result.append(delimeter)
+    result.append(numbers[-1])
+    return result
+
+
+def intersperse_with_ifs
+Time: 21.47s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """ Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """
+    result = []
+    for index in range(len(numbers) - 1):
+        result.append(numbers[index])
+        result.append(delimeter)
+    result.append(numbers[-1])
+    return result
+
+
+if __name__ == "__main__":
+Time: 17.23s
+Acceptance Rate: 0.8181818181818182
+=> Regular sampling with target model
+from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """ Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """
+    max_depths = []
+    for paren_group in paren_string.split():
+        depth = 0
+        max_depth = 0
+        for paren in paren_group:
+            if paren == '(':
+                depth += 1
+               
+Time: 21.57s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """ Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """
+    max_depths = []
+    for paren_group in paren_string.split():
+        depth = 0
+        max_depth = 0
+        for paren in paren_group:
+            if paren == "(":
+                depth += 1
+               
+Time: 21.49s
+Acceptance Rate: 0.6538461538461539
+=> Regular sampling with target model
+from typing import List
+
+
+def filter_by_substring(strings: List[str], substring: str) -> List[str]:
+    """ Filter an input list of strings only for ones that contain given substring
+    >>> filter_by_substring([], 'a')
+    []
+    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
+    ['abc', 'bacd', 'array']
+    """
+    return [string for string in strings if substring in string]
+
+
+if __name__ == "__main__":
+    from doctest import testmod
+
+    testmod()
+ import os
+import sys
+import time
+import json
+import asyncio
+import logging
+
+Time: 22.05s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def filter_by_substring(strings: List[str], substring: str) -> List[str]:
+    """ Filter an input list of strings only for ones that contain given substring
+    >>> filter_by_substring([], 'a')
+    []
+    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
+    ['abc', 'bacd', 'array']
+    """
+    return [s for s in strings if substring in s]
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+ import os
+import sys
+import time
+import numpy as np
+import imgaug  # https://github.
+Time: 17.60s
+Acceptance Rate: 0.8636363636363636
+=> Regular sampling with target model
+from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """ For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """
+    return sum(numbers), reduce(lambda x, y: x * y, numbers, 1)
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+ import os
+import sys
+import time
+import
+Time: 22.05s
+=> Speculative sampling with target model helped by draft model
+from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """ For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """
+    return sum(numbers), reduce(lambda x, y: x * y, numbers, 1)
+
+
+def sum_product2(numbers: List[int]) -> Tuple[int, int]:
+    """ For a given list of integers, return a tuple consisting of a sum and a product
+Time: 16.85s
+Acceptance Rate: 0.9166666666666666
+=> Regular sampling with target model
+from typing import List, Tuple
+
+
+def rolling_max(numbers: List[int]) -> List[int]:
+    """ From a given list of integers, generate a list of rolling maximum element found until given moment
+    in the sequence.
+    >>> rolling_max([1, 2, 3, 2, 3, 4, 2])
+    [1, 2, 3, 3, 3, 4, 4]
+    """
+    result = []
+    max_number = -10000000000000000000000000000000000000000000000000000
+Time: 21.52s
+=> Speculative sampling with target model helped by draft model
+from typing import List, Tuple
+
+
+def rolling_max(numbers: List[int]) -> List[int]:
+    """ From a given list of integers, generate a list of rolling maximum element found until given moment
+    in the sequence.
+    >>> rolling_max([1, 2, 3, 2, 3, 4, 2])
+    [1, 2, 3, 3, 3, 4, 4]
+    """
+    rolling_max_list = []
+    max_number = -100000000000000000000000000000000000000000000000000
+Time: 21.53s
+Acceptance Rate: 0.6190476190476191
+=> Regular sampling with target model
+
+
+def is_palindrome(string: str) -> bool:
+    """ Test if given string is a palindrome """
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """ Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """
+    # Find the longest postfix that is a palindrome.
+    # If the whole string is a palindrome, then we'll treat suffix as an empty string.
+    suffix = ''
+    for i in range(len(string)):
+        if is_palindrome(string
+Time: 22.12s
+=> Speculative sampling with target model helped by draft model
+
+
+def is_palindrome(string: str) -> bool:
+    """ Test if given string is a palindrome """
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """ Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """
+    # Find the longest postfix that is a palindrome.
+    # If the whole string is a palindrome, then we return it.
+    # If there is no postfix palindrome, then we return an empty string.
+    palindrome_length = 0
+    for i in range
+Time: 49.55s
+Acceptance Rate: 0.2866666666666667
+=> Regular sampling with target model
+from typing import List
+
+
+def string_xor(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary XOR on these inputs and return result also as a string.
+    >>> string_xor('010', '110')
+    '100'
+    """
+    return "".join(str(int(c1 != c2)) for c1, c2 in zip(a, b))
+
+
+def single_number(nums: List[int]) -> int:
+    """ Given a non-empty array of integers, every element appears twice except
+Time: 21.40s
+=> Speculative sampling with target model helped by draft model
+from typing import List
+
+
+def string_xor(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary XOR on these inputs and return result also as a string.
+    >>> string_xor('010', '110')
+    '100'
+    """
+    return "".join(str(int(c1 != c2)) for cTraceback (most recent call last):
+  File "/home/ubuntu/llama-ssp/llamassp.py", line 295, in <module>
+    acceptance_rate, sample_model_time, ssp_time = show_comparative_speeds(text, model, draft_model)
+  File "/home/ubuntu/llama-ssp/llamassp.py", line 222, in show_comparative_speeds
+    input_ids, total_count_accepted, total_count_generated = ssp(model, draft_model, MAX_NEW_TOKENS,
+  File "/home/ubuntu/llama-ssp/lssp/ssp.py", line 111, in ssp
+    input_ids, count_accepted = _ssp_iteration(target_model, draft_model, input_ids, K, display)
+  File "/home/ubuntu/llama-ssp/lssp/ssp.py", line 80, in _ssp_iteration
+    next_token_id = _target_sample_from_distribution(
+  File "/home/ubuntu/llama-ssp/lssp/ssp.py", line 38, in _target_sample_from_distribution
+    return torch.multinomial(distribution, num_samples=1).squeeze(-1)
+RuntimeError: probability tensor contains either `inf`, `nan` or element < 0
