@@ -11,7 +11,7 @@ from lssp.base import get_temperature_distribution, sample_fn, stream_token_if_r
 torch.manual_seed(1339)
 
 
-def _draft_sample_k(model, input_ids, K):
+def _draft_sample_k(model, input_ids, K, draft_tempurature):
     """sample K tokens from the draft model autoregressively
     draft_logits are a (B, K, V) tensor
     inputs_plus_k are a (B, T+K) tensor
@@ -21,7 +21,7 @@ def _draft_sample_k(model, input_ids, K):
     for t in range(K):
         outputs = model(inputs_plus_k)
         next_token_logits = outputs.logits[:, -1, :]
-        next_token_id = sample_fn(next_token_logits)
+        next_token_id = sample_fn(next_token_logits, temperature=draft_tempurature)
         inputs_plus_k = torch.cat(
             [inputs_plus_k, next_token_id.unsqueeze(1)],
             dim=1)
@@ -67,14 +67,14 @@ def _beam_greedy_ssp_iteration(target_model, draft_model, input_ids, num_beams, 
     return final_output, final_accepted_length
 
 
-def _ssp_iteration(target_model, draft_model, input_ids, K=4, display=False):
+def _ssp_iteration(target_model, draft_model, input_ids, target_tempurature, draft_tempurature, K=4, display=False):
 
     _, T = input_ids.shape
     # sample K tokens from the draft model autoregressively
     # draft_logits are a (B, K, V) tensor
     # inputs_plus_k are a (B, T+K) tensor
     inputs_plus_k, draft_logits = _draft_sample_k(
-        draft_model, input_ids, K
+        draft_model, input_ids, K, draft_tempurature=draft_tempurature
     )
     debug(
         f"Possible continuations: {tokenizer.decode(inputs_plus_k[0,T:], skip_special_tokens=True)}")
@@ -82,8 +82,8 @@ def _ssp_iteration(target_model, draft_model, input_ids, K=4, display=False):
     # target_logits are a (B, K+1, V) tensor
     # TODO avoid using .logits since it is HF-specific
     target_logits = target_model(inputs_plus_k).logits[:, -K-1:, :]
-    target_distribution = get_temperature_distribution(target_logits)
-    draft_distribution = get_temperature_distribution(draft_logits)
+    target_distribution = get_temperature_distribution(target_logits, target_tempurature)
+    draft_distribution = get_temperature_distribution(draft_logits, draft_tempurature)
     # Accept-reject token loop
     all_accepted = True
     count_accepted = 0
@@ -105,6 +105,15 @@ def _ssp_iteration(target_model, draft_model, input_ids, K=4, display=False):
             input_ids = output_ids
             count_accepted += 1
         else:
+            #target_token_id = sample_fn(target_distribution[:1, t-1, :], temperature=target_tempurature)
+            #if target_token_id == inputs_plus_k[:, T + t-1]:
+            #    output_ids = torch.cat(
+            #    [input_ids, inputs_plus_k[:, T + t-1].unsqueeze(1)],
+            #    dim=1)
+            #    stream_token_if_required(output_ids, input_ids, stream=display)
+            #    input_ids = output_ids
+            #    count_accepted += 1
+            #else:
             all_accepted = False
             next_token_id = _target_sample_from_distribution(
                 target_distribution[:1, t-1, :],
@@ -118,7 +127,7 @@ def _ssp_iteration(target_model, draft_model, input_ids, K=4, display=False):
         
     # if all tokens were accepted, sample a last one
     if all_accepted:
-        next_token_id = sample_fn(target_logits[:1, -1, :])
+        next_token_id = sample_fn(target_logits[:1, -1, :], target_tempurature)
         output_ids = torch.cat(
             [input_ids, next_token_id.unsqueeze(1)],
             dim=1)
@@ -132,14 +141,14 @@ def _ssp_iteration(target_model, draft_model, input_ids, K=4, display=False):
     return input_ids, count_accepted
 
 
-def ssp(target_model, draft_model, min_nb_tokens, input_ids, K=4, display=False):
+def ssp(target_model, draft_model, min_nb_tokens, input_ids, target_tempurature, draft_tempurature, K=4, display=False):
     B, T = input_ids.shape
     assert B == 1, "Batch size must be 1, implement the fixes for B > 1"
     total_count_accepted = 0
     total_count_generated = 0
     while input_ids.shape[1] < T + min_nb_tokens:
         debug(f"Current length: {input_ids.shape[1]}")
-        input_ids, count_accepted = _ssp_iteration(target_model, draft_model, input_ids, K, display)
+        input_ids, count_accepted = _ssp_iteration(target_model, draft_model, input_ids, target_tempurature, draft_tempurature, K, display)
         total_count_accepted += count_accepted
         total_count_generated += K
         if 2 in input_ids:

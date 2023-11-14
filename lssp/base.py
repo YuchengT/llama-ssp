@@ -2,11 +2,14 @@
 
 import sys
 import torch
-from transformers import LlamaForCausalLM, LlamaTokenizer
+from transformers import LlamaForCausalLM, LlamaTokenizer, AutoTokenizer, GPT2Tokenizer
 import time
 
 llama7b_name = 'decapoda-research/llama-7b-hf'
-tokenizer = LlamaTokenizer.from_pretrained(llama7b_name)
+codellama7b_name = 'decapoda-research/llama-7b-hf'
+tokenizer = LlamaTokenizer.from_pretrained(codellama7b_name)
+#tokenizer = AutoTokenizer.from_pretrained(codellama7b_name)
+#tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
 
 def create_model(model_name, device_map, max_memory, load_in_8bit=True, load_in_4bit=False):
