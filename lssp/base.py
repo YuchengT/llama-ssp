@@ -4,23 +4,28 @@ import sys
 import torch
 from transformers import LlamaForCausalLM, LlamaTokenizer, AutoTokenizer, GPT2Tokenizer
 import time
+from awq import AutoAWQForCausalLM
 
 llama7b_name = 'decapoda-research/llama-7b-hf'
 codellama7b_name = 'decapoda-research/llama-7b-hf'
-tokenizer = LlamaTokenizer.from_pretrained(codellama7b_name)
+tokenizer = LlamaTokenizer.from_pretrained('meta-llama/Llama-2-7b-chat-hf')
 #tokenizer = AutoTokenizer.from_pretrained(codellama7b_name)
 #tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
 
 def create_model(model_name, device_map, max_memory, load_in_8bit=True, load_in_4bit=False):
-    model = LlamaForCausalLM.from_pretrained(
-            model_name,
-            device_map=device_map,
-            load_in_8bit=load_in_8bit,
-            load_in_4bit=load_in_4bit,
-            max_memory=max_memory
-        )
-    return model, model.hf_device_map
+    model = AutoAWQForCausalLM.from_quantized(model_name, fuse_layers=True, device_map=device_map,
+                                          trust_remote_code=False, safetensors=True)
+
+    return model
+    #model = LlamaForCausalLM.from_pretrained(
+    #        model_name,
+    #        device_map=device_map,
+    #        load_in_8bit=load_in_8bit,
+    #        load_in_4bit=load_in_4bit,
+    #        max_memory=max_memory
+    #    )
+    #return model, model.hf_device_map
 
 
 def stream_token_if_required(output_ids, input_ids, stream=False):
@@ -39,7 +44,7 @@ TEMPERATURE = 0.1
 
 
 def get_temperature_distribution(logits, temperature=TEMPERATURE):
-    if temperature == 0:
+    if temperature == 0.0:
         return torch.softmax(logits, dim=-1)
     return torch.softmax(logits / temperature, dim=-1)
 

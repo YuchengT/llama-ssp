@@ -24,6 +24,9 @@ llama7b_name = 'decapoda-research/llama-7b-hf'
 llama13b_name = 'decapoda-research/llama-13b-hf'
 llama30b_name = 'decapoda-research/llama-30b-hf'
 llama65b_name = 'decapoda-research/llama-65b-hf'
+tinyllama_name = 'TinyLlama/TinyLlama-1.1B-Chat-v0.6'
+#tinyllama_awq_name = "TheBloke/TinyLlama-1.1B-Chat-v0.3-AWQ"
+tinyllama_awq_name = "TheBloke/TinyLlama-1.1B-1T-OpenOrca-AWQ"
 batch_size = 1
 
 texts_1 = [
@@ -44,6 +47,17 @@ texts_1 = [
     'The waves crashed against the shore, a never-ending cycle of destruction and creation.',
     'I woke up to find myself in a strange place, with no memory of how I got there.',
     'The clock struck midnight, and I knew that my life would never be the same.',]
+
+test_texts = [
+    'The future of Amazon is',
+    'The future of Google is',
+    'The future of Apple is',
+    'The future of Microsoft is',
+    'The future of Tesla is',
+    'The future of Nvidia is',
+    'The future of Meta is',
+    'The future of Netflix is',
+    'The capital of United States is',]
 
 completion_texts = ['Once upon a time, in the vibrant, mysterious world beneath the waves, there lived an extraordinary shark named Sharky. However, Sharky was no ordinary shark; he was a tooth-brushing superhero with a heart as big as the ocean itself. Sharky\'s'\
                     'story began in a hidden corner of the Great Barrier Reef, where he was born to a family of toothless sharks. Unlike his siblings, who relied on their razor-sharp teeth for survival, Sharky was born with a unique gift – a giant, neon-blue toothbrush that appeared out of thin air whenever he needed it.']
@@ -78,26 +92,28 @@ def load_prompts():
 
 
 def time_model(model):
-    # time the first run
-    texts = load_prompts()[:10]
-    input_ids = tokenizer(texts[0], return_tensors="pt").input_ids
-    input_ids = torch.stack([input_ids[0]] * batch_size).to(model.device)
-    generated_ids = sample_model(model, input_ids, MAX_NEW_TOKENS)
-
-    start_time = time.time()
-    nb_tokens = 0
-    for text in texts[1:]:
-        #print("Completing text:", text)
-        intermediate_time = time.time()
-        input_ids = tokenizer(text, return_tensors="pt").input_ids
-        input_ids = torch.stack([input_ids[0]] * batch_size).to(model.device)
+    model.eval()
+    with torch.no_grad():
+        # time the first run
+        texts = test_texts
+        input_ids = tokenizer(texts[0], return_tensors="pt").input_ids
+        input_ids = torch.stack([input_ids[0]] * batch_size).to('cuda:0')
         generated_ids = sample_model(model, input_ids, MAX_NEW_TOKENS)
-        nb_tokens += generated_ids.shape[1] - input_ids.shape[1]
-        #print("Completion: ", tokenizer.decode(
-        #    generated_ids[0], skip_special_tokens=True))
-        print("Time: {:.2f}s".format(time.time() - intermediate_time))
-        print("========\n")
-    ms_per_token = (time.time() - start_time)*1000 / nb_tokens
+
+        start_time = time.time()
+        nb_tokens = 0
+        for text in texts[1:]:
+            #print("Completing text:", text)
+            intermediate_time = time.time()
+            input_ids = tokenizer(text, return_tensors="pt").input_ids
+            input_ids = torch.stack([input_ids[0]] * batch_size).to('cuda:0')
+            generated_ids = sample_model(model, input_ids, MAX_NEW_TOKENS)
+            nb_tokens += generated_ids.shape[1] - input_ids.shape[1]
+            #print("Completion: ", tokenizer.decode(
+            #    generated_ids[0], skip_special_tokens=True))
+            print("Time: {:.2f}s".format(time.time() - intermediate_time))
+            print("========\n")
+        ms_per_token = (time.time() - start_time)*1000 / nb_tokens
     return generated_ids, ms_per_token
 
 
@@ -110,9 +126,18 @@ def print_results(tokens_s, outputs, name='Noname'):
 
 
 models_params = {
-    '7B_code_4bit':{'model_name': codellama7b_name, 'device_map':'balanced',
+    'tiny_awq':{'model_name': tinyllama_awq_name, 'device_map':{'':0},
+                'max_memory': max_memory(8),
+                'load_in_8bit': False, 'load_in_4bit': False},
+    'tiny_4bit':{'model_name': tinyllama_name, 'device_map':{'':0},
                 'max_memory': max_memory(8),
                 'load_in_8bit': False, 'load_in_4bit': True},
+    'tiny_8bit':{'model_name': tinyllama_name, 'device_map':{'':0},
+                'max_memory': max_memory(8),
+                'load_in_8bit': True, 'load_in_4bit': False},
+    'tiny':{'model_name': tinyllama_name, 'device_map':{'':0},
+                'max_memory': max_memory(8),
+                'load_in_8bit': False, 'load_in_4bit': False},
     '7B_4bit': {'model_name': llama7b_name, 'device_map':{'': 0},
                 'max_memory': max_memory(1),
                 'load_in_8bit': False, 'load_in_4bit': True},
@@ -433,7 +458,7 @@ if __name__ == "__main__":
     elif (args.subcommand == 'latency'):
         print(f"Testing {args.model}")
         print('-'*20)
-        model, model_device_map = create_model(**models_params[args.model])
+        model = create_model(**models_params[args.model])
         gen_ids, ms_per_token = time_model(model)
         print_results(ms_per_token, gen_ids, args.model)
 

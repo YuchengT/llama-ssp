@@ -105,15 +105,6 @@ def _ssp_iteration(target_model, draft_model, input_ids, target_tempurature, dra
             input_ids = output_ids
             count_accepted += 1
         else:
-            #target_token_id = sample_fn(target_distribution[:1, t-1, :], temperature=target_tempurature)
-            #if target_token_id == inputs_plus_k[:, T + t-1]:
-            #    output_ids = torch.cat(
-            #    [input_ids, inputs_plus_k[:, T + t-1].unsqueeze(1)],
-            #    dim=1)
-            #    stream_token_if_required(output_ids, input_ids, stream=display)
-            #    input_ids = output_ids
-            #    count_accepted += 1
-            #else:
             all_accepted = False
             next_token_id = _target_sample_from_distribution(
                 target_distribution[:1, t-1, :],
@@ -148,7 +139,8 @@ def ssp(target_model, draft_model, min_nb_tokens, input_ids, target_tempurature,
     total_count_generated = 0
     while input_ids.shape[1] < T + min_nb_tokens:
         debug(f"Current length: {input_ids.shape[1]}")
-        input_ids, count_accepted = _ssp_iteration(target_model, draft_model, input_ids, target_tempurature, draft_tempurature, K, display)
+        with torch.no_grad():
+            input_ids, count_accepted = _ssp_iteration(target_model, draft_model, input_ids, target_tempurature, draft_tempurature, K, display)
         total_count_accepted += count_accepted
         total_count_generated += K
         if 2 in input_ids:
